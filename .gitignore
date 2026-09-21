@@ -1,0 +1,18 @@
+# Linked git worktrees created during development (see AGENTS.md) --
+# never part of the published repo's own content.
+.worktrees/
+
+# Compiled parser artifacts -- build these yourself with `tree-sitter
+# build` / `tree-sitter generate`; only the generated src/*.c and
+# src/*.json sources are committed, not compiled binaries.
+*.so
+*.dylib
+*.dll
+*.wasm
+*.o
+
+# Node / npm
+node_modules/
+
+# Editor / OS cruft
+.DS_Store
