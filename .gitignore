@@ -5,6 +5,13 @@
 # Compiled parser artifacts -- build these yourself with `tree-sitter
 # build` / `tree-sitter generate`; only the generated src/*.c and
 # src/*.json sources are committed, not compiled binaries.
+#
+# `parser/` is where Neovim (and nvim-treesitter) actually discover a
+# compiled parser -- runtimepath entries are searched for
+# `parser/<language>.so`, NOT for a bare `<language>.so` at the repo
+# root. `tree-sitter build -o parser/bend2.so` is therefore the required
+# invocation; see README.md's Neovim install steps.
+parser/
 *.so
 *.dylib
 *.dll

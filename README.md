@@ -29,7 +29,13 @@ and no Lua required at all.
    region` highlighting and a simple `indentexpr`. Works in **plain Vim
    and Neovim alike**, with zero dependencies beyond the editor itself.
 2. **Tree-sitter layer** (`grammar.js`, `src/scanner.c`,
-   `queries/highlights.scm`, `ftplugin/bend.lua`) -- a real parser with
+   `queries/bend2/highlights.scm`, `ftplugin/bend.lua`) -- a real parser with
+   accurate, structural highlighting. The query lives under
+   `queries/<language>/` (here `queries/bend2/`) because that is the only
+   path Neovim searches for a language's queries; a query at
+   `queries/highlights.scm` alone is silently invisible. (`queries/highlights.scm`
+   exists too, as a symlink, for tools that use the bare tree-sitter
+   convention.)
    accurate, structural highlighting. **Neovim only** (tree-sitter itself
    is a Neovim built-in; vanilla Vim has no equivalent), additive on top
    of the classic layer, not a replacement for it.
@@ -80,8 +86,14 @@ export PATH="$HOME/.bend/bin:$PATH"
 Clone this repo onto your runtimepath -- e.g. with a plugin manager:
 
 ```vim
-" vim-plug
+" vim-plug -- plain Vim / classic layer only, no build step
 Plug 'davidawad/tree-sitter-bend2'
+
+" vim-plug -- Neovim, with the tree-sitter parser built at install time.
+" The `do` hook produces parser/bend2.so, which is what Neovim actually
+" searches the runtimepath for; a bare bend2.so at the repo root is NOT
+" discovered and tree-sitter highlighting silently stays off.
+Plug 'davidawad/tree-sitter-bend2', { 'do': 'tree-sitter generate && mkdir -p parser && tree-sitter build -o parser/bend2.so' }
 ```
 
 or manually, Vim 8+ native packages:
@@ -106,8 +118,14 @@ tree-sitter, no Lua.
    ```sh
    cd ~/.config/nvim/pack/plugins/start/tree-sitter-bend2  # or wherever step 1 put it
    tree-sitter generate   # only needed if you edited grammar.js/scanner.c
-   tree-sitter build -o bend2.so
+   mkdir -p parser
+   tree-sitter build -o parser/bend2.so
    ```
+
+   The `parser/` directory and the `bend2.so` filename are both load-bearing:
+   Neovim searches each runtimepath entry for `parser/<language>.so`, so a
+   `bend2.so` built into the repo root is never found and tree-sitter
+   highlighting stays silently inactive even though the plugin loads fine.
 
 3. Register the compiled parser. With
    [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
@@ -116,8 +134,6 @@ tree-sitter, no Lua.
    ```lua
    require('nvim-treesitter.parsers').get_parser_configs().bend2 = {
      install_info = {
-       -- Update this URL once the repo is published; a local checkout
-       -- path also works here for now, e.g. during development.
        url = 'https://github.com/davidawad/tree-sitter-bend2',
        files = { 'src/parser.c', 'src/scanner.c' },
        branch = 'main',
@@ -150,6 +166,29 @@ tree-sitter generate               # regenerate src/parser.c from grammar.js
 tree-sitter test                   # run test/corpus/*.txt
 tree-sitter parse examples/*.bend  # zero (ERROR) nodes on all 9 real, compiler-verified files
 ```
+
+Those three prove the *grammar*. They say nothing about whether an editor
+can find it, which is a different failure mode entirely -- the two bugs
+this repo actually shipped on its first cut were both discovery bugs, not
+grammar bugs: the query at `queries/highlights.scm` instead of
+`queries/bend2/highlights.scm`, and a `bend2.so` built at the repo root
+instead of `parser/bend2.so`. Both fail silently -- the plugin loads, the
+buffer gets `filetype=bend`, nothing errors, and no tree-sitter
+highlighting appears -- so check discovery directly:
+
+```sh
+# Neovim: parser and query must BOTH resolve by name
+nvim --clean --headless \
+  --cmd 'set runtimepath+=<this repo>' \
+  -c 'lua print(vim.inspect(vim.api.nvim_get_runtime_file("parser/bend2.so", true)))' \
+  -c 'lua print(vim.inspect(vim.treesitter.query.get_files("bend2", "highlights")))' \
+  -c 'qall!'
+```
+
+Both must print a non-empty path list. Then confirm highlighting is
+actually *drawn*, not just that the parser loaded, by opening a `.bend`
+file with `:syntax off` in a real terminal -- anything still colored is
+tree-sitter.
 
 All 9 files under `examples/` are real Bend 2 source, verified against the
 actual installed `bend` 2.0.22 compiler (`bend FILE --check-only`) during

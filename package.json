@@ -29,7 +29,7 @@
       "file-types": [
         "bend"
       ],
-      "highlights": "queries/highlights.scm"
+      "highlights": "queries/bend2/highlights.scm"
     }
   ]
 }
