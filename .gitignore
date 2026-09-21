@@ -1,25 +1,14 @@
-# Linked git worktrees created during development (see AGENTS.md) --
-# never part of the published repo's own content.
-.worktrees/
-
-# Compiled parser artifacts -- build these yourself with `tree-sitter
-# build` / `tree-sitter generate`; only the generated src/*.c and
-# src/*.json sources are committed, not compiled binaries.
-#
-# `parser/` is where Neovim (and nvim-treesitter) actually discover a
-# compiled parser -- runtimepath entries are searched for
-# `parser/<language>.so`, NOT for a bare `<language>.so` at the repo
-# root. `tree-sitter build -o parser/bend2.so` is therefore the required
-# invocation; see README.md's Neovim install steps.
+# Build artifacts produced by scripts/build-parser.sh. The grammar and its
+# queries live in davidawad/tree-sitter-bend2, which is the single source of
+# truth for both -- a committed copy here is a copy that drifts.
 parser/
-*.so
-*.dylib
-*.dll
-*.wasm
-*.o
+queries/bend2/
 
-# Node / npm
+# node/npm leftovers (this repo has no package.json any more)
 node_modules/
+
+# Linked git worktrees created during development
+.worktrees/
 
 # Editor / OS cruft
 .DS_Store
