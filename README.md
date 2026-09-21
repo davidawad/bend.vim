@@ -1,9 +1,19 @@
-# tree-sitter-bend2
+# bend.vim
 
-A [tree-sitter](https://tree-sitter.github.io/tree-sitter/) grammar for
-[Bend 2](https://github.com/bendlang/bend), a dependently typed, affine,
-Python-shaped functional language whose compiler targets native CPU,
-Metal/CUDA and JS -- plus a Neovim/Vim plugin built on top of it.
+Vim and Neovim support for [Bend 2](https://github.com/bendlang/bend), a
+dependently typed, affine, Python-shaped functional language whose compiler
+targets native CPU, Metal/CUDA and JS.
+
+This repo is a **Vim plugin first**. It ships an ordinary Vimscript layer
+(`ftdetect`/`syntax`/`indent`) that gives both editors real highlighting and
+indentation with no build step, and -- sitting *on top* of that, Neovim-only
+-- a full [tree-sitter](https://tree-sitter.github.io/tree-sitter/) grammar
+with structural highlighting. The grammar lives inside this repo rather than
+in a repo of its own because nothing needs it to: nvim-treesitter takes a
+grammar's location as an explicit `install_info.url` (plus `files`,
+`location` and `queries` options), so it never derives it from a repo name.
+Splitting them would only mean the parser has to be built somewhere and
+copied into the editor's runtimepath by hand.
 
 Bend 2 is a fresh rewrite: the compiler repo now belongs entirely to Bend 2,
 and the editor ecosystem that existed for Bend 1
@@ -87,13 +97,13 @@ Clone this repo onto your runtimepath -- e.g. with a plugin manager:
 
 ```vim
 " vim-plug -- plain Vim / classic layer only, no build step
-Plug 'davidawad/tree-sitter-bend2', { 'branch': 'main' }
+Plug 'davidawad/bend.vim', { 'branch': 'main' }
 
 " vim-plug -- Neovim, with the tree-sitter parser built at install time.
 " The `do` hook produces parser/bend2.so, which is what Neovim actually
 " searches the runtimepath for; a bare bend2.so at the repo root is NOT
 " discovered and tree-sitter highlighting silently stays off.
-Plug 'davidawad/tree-sitter-bend2', { 'branch': 'main', 'do': 'tree-sitter generate && mkdir -p parser && tree-sitter build -o parser/bend2.so' }
+Plug 'davidawad/bend.vim', { 'branch': 'main', 'do': 'tree-sitter generate && mkdir -p parser && tree-sitter build -o parser/bend2.so' }
 ```
 
 `{ 'branch': 'main' }` is required, not decorative: vim-plug checks out
@@ -109,8 +119,8 @@ or manually, Vim 8+ native packages:
 
 ```sh
 mkdir -p ~/.vim/pack/plugins/start
-git clone https://github.com/davidawad/tree-sitter-bend2 \
-  ~/.vim/pack/plugins/start/tree-sitter-bend2
+git clone https://github.com/davidawad/bend.vim \
+  ~/.vim/pack/plugins/start/bend.vim
 ```
 
 That alone gets you filetype detection, `syntax/bend.vim` highlighting,
@@ -125,7 +135,7 @@ tree-sitter, no Lua.
    `cargo install tree-sitter-cli` or `npm install -g tree-sitter-cli`):
 
    ```sh
-   cd ~/.config/nvim/pack/plugins/start/tree-sitter-bend2  # or wherever step 1 put it
+   cd ~/.config/nvim/pack/plugins/start/bend.vim  # or wherever step 1 put it
    tree-sitter generate   # only needed if you edited grammar.js/scanner.c
    mkdir -p parser
    tree-sitter build -o parser/bend2.so
@@ -143,7 +153,7 @@ tree-sitter, no Lua.
    ```lua
    require('nvim-treesitter.parsers').get_parser_configs().bend2 = {
      install_info = {
-       url = 'https://github.com/davidawad/tree-sitter-bend2',
+       url = 'https://github.com/davidawad/bend.vim',
        files = { 'src/parser.c', 'src/scanner.c' },
        branch = 'main',
      },
@@ -158,7 +168,7 @@ tree-sitter, no Lua.
    exactly steps 1-2 above plus telling Neovim where to find the `.so`:
 
    ```lua
-   vim.treesitter.language.add('bend2', { path = '/path/to/tree-sitter-bend2/bend2.so' })
+   vim.treesitter.language.add('bend2', { path = '/path/to/bend.vim/parser/bend2.so' })
    ```
 
    `ftplugin/bend.lua` (shipped in this repo, loads automatically once the
