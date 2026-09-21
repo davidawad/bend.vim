@@ -87,14 +87,23 @@ Clone this repo onto your runtimepath -- e.g. with a plugin manager:
 
 ```vim
 " vim-plug -- plain Vim / classic layer only, no build step
-Plug 'davidawad/tree-sitter-bend2'
+Plug 'davidawad/tree-sitter-bend2', { 'branch': 'main' }
 
 " vim-plug -- Neovim, with the tree-sitter parser built at install time.
 " The `do` hook produces parser/bend2.so, which is what Neovim actually
 " searches the runtimepath for; a bare bend2.so at the repo root is NOT
 " discovered and tree-sitter highlighting silently stays off.
-Plug 'davidawad/tree-sitter-bend2', { 'do': 'tree-sitter generate && mkdir -p parser && tree-sitter build -o parser/bend2.so' }
+Plug 'davidawad/tree-sitter-bend2', { 'branch': 'main', 'do': 'tree-sitter generate && mkdir -p parser && tree-sitter build -o parser/bend2.so' }
 ```
+
+`{ 'branch': 'main' }` is required, not decorative: vim-plug checks out
+`master` by default, and this repo's default branch is `main`, so omitting
+it fails the install with `fatal: invalid reference: master` -- while still
+leaving a plausible-looking plugin directory behind, which makes the
+breakage easy to miss (the `do` hook never runs, so no `parser/bend2.so`,
+so Neovim silently falls back to the classic layer). Users are on their own
+for this one; it is inherent to vim-plug, not something this repo can fix
+beyond documenting it.
 
 or manually, Vim 8+ native packages:
 
@@ -188,7 +197,15 @@ nvim --clean --headless \
 Both must print a non-empty path list. Then confirm highlighting is
 actually *drawn*, not just that the parser loaded, by opening a `.bend`
 file with `:syntax off` in a real terminal -- anything still colored is
-tree-sitter.
+tree-sitter. (A headless Neovim will report `highlighter_active=true` and
+still apply zero highlight extmarks, because highlighting is applied on
+window redraw; `--headless` has no window, so it cannot be used to prove
+rendering either way. That is why this step wants a real terminal.)
+
+The third discovery bug this repo hit was on the *plugin-manager* side
+rather than the editor side: vim-plug's default branch is `master` while
+this repo's is `main`, so a `Plug` line without `{ 'branch': 'main' }`
+fails to install. See the vim-plug note above.
 
 All 9 files under `examples/` are real Bend 2 source, verified against the
 actual installed `bend` 2.0.22 compiler (`bend FILE --check-only`) during
