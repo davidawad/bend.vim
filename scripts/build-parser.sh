@@ -19,7 +19,7 @@ set -euo pipefail
 GRAMMAR_REPO="https://github.com/davidawad/tree-sitter-bend2"
 # Pinned on purpose. An unpinned grammar means `:PlugUpdate` can silently
 # change how your files highlight, with no review. Bump deliberately.
-GRAMMAR_REV="5e492aff9f9f2ca927c63f3fe2b217c6254e9bcf"
+GRAMMAR_REV="8ad225d157f7409b59c995a11a86908123b9b20c"
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
